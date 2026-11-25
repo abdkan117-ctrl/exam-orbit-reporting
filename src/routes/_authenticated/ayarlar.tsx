@@ -16,6 +16,9 @@ import {
 import { createManager, deleteManager, regenerateShareToken } from "@/lib/app.functions";
 import { coursesQuery, errorTypesQuery, managersQuery, settingsQuery, useMe, type ErrorType } from "@/lib/data";
 import { CATEGORY_LABELS, type ErrorCategory } from "@/lib/scoring";
+import { mergeLabels, type SheetLabelKey, type SheetLabels } from "@/lib/sheet";
+import { Textarea } from "@/components/ui/textarea";
+import type { CourseRow } from "@/lib/data";
 
 export const Route = createFileRoute("/_authenticated/ayarlar")({
   head: () => ({
@@ -74,6 +77,8 @@ function SettingsPage() {
     <AppShell title="Ayarlar">
       <div className="space-y-6">
         <RegionSettings />
+        <CourseSheetSettings />
+        <SheetTextSettings />
         <ErrorTypeSettings />
         <ManagerSettings />
         <ShareSettings />
@@ -86,38 +91,106 @@ function RegionSettings() {
   const qc = useQueryClient();
   const { data } = useQuery(settingsQuery);
   const [name, setName] = useState("");
+  const [bolge, setBolge] = useState("");
   useEffect(() => { if (data?.region_name) setName(data.region_name); }, [data?.region_name]);
+  useEffect(() => { setBolge(data?.bolge_name ?? ""); }, [data?.bolge_name]);
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
     const v = name.trim().replace(/\s+/g, " ");
     if (!v) return;
-    const { error } = await supabase.from("app_settings").update({ region_name: v, updated_at: new Date().toISOString() }).eq("id", 1);
+    const { error } = await supabase.from("app_settings").update({ region_name: v, bolge_name: bolge.trim(), updated_at: new Date().toISOString() }).eq("id", 1);
     if (error) { toast.error("Kaydedilemedi"); return; }
-    toast.success("Mıntıka adı kaydedildi");
+    toast.success("Bölge ve mıntıka kaydedildi");
     qc.invalidateQueries();
   }
 
   return (
-    <Section title="Mıntıka adı" text="Sayfaların üstünde, paylaşım linkinde ve PDF'lerde görünür.">
+    <Section title="Bölge ve Mıntıka">
       <form onSubmit={save} className="flex flex-wrap gap-2">
-        <Input value={name} onChange={(e) => setName(e.target.value)} maxLength={80} className="h-11 min-w-60 flex-1 text-base" />
-        <Button type="submit" className="h-11" disabled={!name.trim() || name.trim() === data?.region_name}><Save /> Kaydet</Button>
+        <label className="min-w-0 flex-1 space-y-1">Bölge<Input aria-label="Bölge adı" value={bolge} onChange={(e) => setBolge(e.target.value)} maxLength={80} className="h-11 text-base" /></label>
+        <label className="min-w-0 flex-1 space-y-1">Mıntıka<Input aria-label="Mıntıka adı" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} className="h-11 text-base" /></label>
+        <Button type="submit" className="h-11 self-end" disabled={!name.trim() || (name.trim() === data?.region_name && bolge.trim() === data?.bolge_name)}><Save /> Kaydet</Button>
       </form>
     </Section>
   );
+}
+
+function CourseSheetRow({ course }: { course: CourseRow }) {
+  const qc = useQueryClient();
+  const [leader, setLeader] = useState(course.group_leader);
+  const [level, setLevel] = useState(course.group_level);
+  const [busy, setBusy] = useState(false);
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    const { error } = await supabase.from("courses").update({ group_leader: leader.trim(), group_level: level.trim() }).eq("id", course.id);
+    setBusy(false);
+    if (error) { toast.error("Kaydedilemedi"); return; }
+    toast.success("Grup bilgileri kaydedildi");
+    qc.invalidateQueries({ queryKey: ["courses"] });
+  }
+  return <form onSubmit={save} className="grid items-end gap-3 border-b py-4 sm:grid-cols-3">
+    <h3 className="font-semibold sm:col-span-3">{course.name}</h3>
+    <label className="space-y-1 text-sm">Grup Mesulü<Input aria-label={`${course.name} Grup Mesulü`} value={leader} onChange={(e) => setLeader(e.target.value)} maxLength={100} /></label>
+    <label className="space-y-1 text-sm">Grup Seviyesi<Input aria-label={`${course.name} Grup Seviyesi`} value={level} onChange={(e) => setLevel(e.target.value)} maxLength={100} /></label>
+    <Button type="submit" variant="outline" disabled={busy || (leader.trim() === course.group_leader && level.trim() === course.group_level)}><Save /> Kaydet</Button>
+  </form>;
+}
+
+function CourseSheetSettings() {
+  const { data: courses = [] } = useQuery(coursesQuery);
+  return <Section title="Grup bilgileri">{courses.length ? courses.map((c) => <CourseSheetRow key={`${c.id}:${c.group_leader}:${c.group_level}`} course={c} />) : <p className="mt-3 text-muted-foreground">Henüz kurs yok.</p>}</Section>;
+}
+
+function SheetTextSettings() {
+  const qc = useQueryClient();
+  const { data } = useQuery(settingsQuery);
+  const [labels, setLabels] = useState<SheetLabels>(() => mergeLabels(null));
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { setLabels(mergeLabels(data?.sheet_labels)); }, [data?.sheet_labels]);
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    const { error } = await supabase.from("app_settings").update({ sheet_labels: mergeLabels(labels), updated_at: new Date().toISOString() }).eq("id", 1);
+    setBusy(false);
+    if (error) { toast.error("Cetvel yazıları kaydedilemedi"); return; }
+    toast.success("Cetvel yazıları kaydedildi");
+    qc.invalidateQueries();
+  }
+  const groups: { title: string; keys: SheetLabelKey[] }[] = [
+    { title: "Başlık ve üst bilgiler", keys: ["titleSuffix", "bolge", "mintika", "kurum", "grupMesulu", "grupSeviyesi", "sira", "adiSoyadi"] },
+    { title: "Kırâat", keys: ["kiraatTitle", "kiraatLine", "harfNote", "tecvidNote", "kiraatPuan", "kiraatMax"] },
+    { title: "Ezber", keys: ["ezberTitle", "ezberLine1", "ezberLine2", "ezberPart1", "ezberPart2", "ezberPuan", "ezberMax"] },
+    { title: "İlmihal", keys: ["ilmihalTitle", "ilmihalSual1", "ilmihalSual2", "ilmihalSualMax1", "ilmihalSualMax2", "ilmihalPuan", "ilmihalMax"] },
+    { title: "Siyer-i Nebi", keys: ["siyerTitle", "siyerSual1", "siyerSual2", "siyerSualMax1", "siyerSualMax2", "siyerPuan", "siyerMax"] },
+    { title: "Alt bilgiler ve değerlendirmeler", keys: ["examiner", "examDate", "noteYuzune", "noteEzber", "noteIlmihal", "noteSiyer", "noteGenel"] },
+  ];
+  return <Section title="Cetvel yazıları"><form onSubmit={save} className="mt-4 space-y-3">
+    {groups.map((group) => <details key={group.title} className="border-b pb-3"><summary className="cursor-pointer py-2 font-semibold">{group.title}</summary>
+      <div className="grid gap-3 py-3 sm:grid-cols-2">{group.keys.map((key) => <label key={key} className="min-w-0 space-y-1 text-sm">
+        <span className="block break-words text-muted-foreground">{mergeLabels(null)[key]}</span>
+        <Textarea aria-label={`Cetvel yazısı: ${mergeLabels(null)[key]}`} value={labels[key]} maxLength={600} rows={2} onChange={(e) => setLabels((old) => ({ ...old, [key]: e.target.value }))} />
+      </label>)}</div>
+    </details>)}
+    <Button type="submit" disabled={busy || JSON.stringify(mergeLabels(labels)) === JSON.stringify(mergeLabels(data?.sheet_labels))}><Save /> Cetvel yazılarını kaydet</Button>
+  </form></Section>;
 }
 
 function ErrorTypeRow({ t }: { t: ErrorType }) {
   const qc = useQueryClient();
   const [name, setName] = useState(t.name);
   const [ded, setDed] = useState(String(t.deduction));
-  const changed = name.trim() !== t.name || toNum(ded) !== t.deduction;
+  const [repeat, setRepeat] = useState(t.repeat_deduction == null ? "" : String(t.repeat_deduction));
+  const [cap, setCap] = useState(t.max_deduction == null ? "" : String(t.max_deduction));
+  const changed = name.trim() !== t.name || toNum(ded) !== t.deduction || (repeat === "" ? null : toNum(repeat)) !== t.repeat_deduction || (cap === "" ? null : toNum(cap)) !== t.max_deduction;
 
   async function save() {
     const d = toNum(ded);
-    if (!name.trim() || d === null) { toast.error("Kesinti 0 ile 100 arasında olmalı"); return; }
-    const { error } = await supabase.from("error_types").update({ name: name.trim(), deduction: d }).eq("id", t.id);
+    const r = repeat === "" ? null : toNum(repeat);
+    const m = cap === "" ? null : toNum(cap);
+    if (!name.trim() || d === null || (repeat !== "" && r === null) || (cap !== "" && m === null)) { toast.error("Kesinti 0 ile 100 arasında olmalı"); return; }
+    const { error } = await supabase.from("error_types").update({ name: name.trim(), deduction: d, repeat_deduction: r, max_deduction: m }).eq("id", t.id);
     if (error) { toast.error("Kaydedilemedi"); return; }
     toast.success("Kaydedildi");
     qc.invalidateQueries({ queryKey: ["error_types"] });
@@ -138,6 +211,8 @@ function ErrorTypeRow({ t }: { t: ErrorType }) {
         <Input value={ded} onChange={(e) => setDed(e.target.value.replace(/[^0-9.,]/g, "").slice(0, 5))} inputMode="decimal" className="h-10 w-20 text-center" aria-label="Kesinti" />
         <span className="text-sm text-muted-foreground">puan</span>
       </div>
+      <label className="text-xs text-muted-foreground">Mükerrer hata<Input aria-label={`${t.name} mükerrer kesinti`} value={repeat} onChange={(e) => setRepeat(e.target.value)} inputMode="decimal" placeholder="Aynı" className="h-10 w-24" /></label>
+      <label className="text-xs text-muted-foreground">En fazla kesinti<Input aria-label={`${t.name} en fazla kesinti`} value={cap} onChange={(e) => setCap(e.target.value)} inputMode="decimal" placeholder="Sınırsız" className="h-10 w-24" /></label>
       <Button variant="outline" size="sm" onClick={save} disabled={!changed}><Save /> Kaydet</Button>
       <ConfirmDelete label={t.name} description="Daha önce girilmiş puanlar değişmez; bu hata sadece yeni girişlerde görünmez." onConfirm={remove} />
     </div>
@@ -156,7 +231,7 @@ function ErrorTypeSettings() {
     const d = toNum(ded);
     if (!name.trim() || d === null) { toast.error("Ad ve 0–100 arası kesinti girin"); return; }
     const sort = Math.max(0, ...types.map((t) => t.sort_order)) + 1;
-    const { error } = await supabase.from("error_types").insert({ name: name.trim(), category: cat, deduction: d, sort_order: sort });
+    const { error } = await supabase.from("error_types").insert({ name: name.trim(), category: cat, deduction: d, repeat_deduction: cat === "tecvid" ? 1 : null, max_deduction: cat === "tecvid" ? 2 : null, sort_order: sort });
     if (error) { toast.error("Eklenemedi"); return; }
     setName("");
     toast.success("Hata türü eklendi");
@@ -172,7 +247,7 @@ function ErrorTypeSettings() {
             <div key={c}>
               <p className="mb-1 text-sm font-bold uppercase tracking-wide text-muted-foreground">{CATEGORY_LABELS[c]} hataları</p>
               {list.length ? (
-                <div className="divide-y rounded-xl border">{list.map((t) => <ErrorTypeRow key={`${t.id}:${t.name}:${t.deduction}`} t={t} />)}</div>
+                <div className="divide-y rounded-xl border">{list.map((t) => <ErrorTypeRow key={`${t.id}:${t.name}:${t.deduction}:${t.repeat_deduction}:${t.max_deduction}`} t={t} />)}</div>
               ) : (
                 <p className="text-sm text-muted-foreground">Bu grupta hata türü yok.</p>
               )}

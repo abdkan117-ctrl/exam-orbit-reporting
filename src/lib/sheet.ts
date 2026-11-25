@@ -127,6 +127,18 @@ export function errorSnapshot(t: SheetErrorType, count: number): KiraatError {
   return { id: t.id, name: t.name, category: t.category, deduction: t.deduction, repeat_deduction: t.repeat_deduction, max_deduction: t.max_deduction, count };
 }
 
+/** Retain saved deductions on existing results, even after settings change. */
+export function sheetErrors(types: SheetErrorType[], counts: Record<string, number>, saved: KiraatError[]): KiraatError[] {
+  const out: KiraatError[] = [];
+  for (const t of types) {
+    const count = counts[t.id] ?? 0;
+    const snapshot = saved.find((e) => e.id === t.id);
+    if (count > 0) out.push(snapshot ? { ...snapshot, count } : errorSnapshot(t, count));
+  }
+  for (const e of saved) if (!types.some((t) => t.id === e.id) && e.count > 0) out.push(e);
+  return out;
+}
+
 export interface SheetRowData {
   no: number;
   studentId: string;

@@ -14,7 +14,7 @@ import { type KiraatError } from "@/lib/scoring";
 import { cn } from "@/lib/utils";
 import { sheetPdfInputs } from "@/lib/reports";
 import {
-  emptyInfo, emptyMarks, errorSnapshot, kiraatColumns, liveScores, mergeLabels, sheetTitle, toMarks,
+  emptyInfo, sheetErrors, kiraatColumns, liveScores, mergeLabels, sheetTitle, toMarks,
   type SheetInfo, type SheetMarks,
 } from "@/lib/sheet";
 import { compareTr } from "@/lib/format";
@@ -109,7 +109,10 @@ function ExamSheet() {
   const dirtyCount = Object.values(drafts).filter((d) => d.dirty).length + Object.values(infos).filter((i) => i.dirty).length;
 
   const update = (id: string, patch: Partial<Draft>) =>
-    setDrafts((d) => ({ ...d, [id]: { ...d[id]!, ...patch, dirty: true } }));
+    setDrafts((d) => {
+      const current = d[id];
+      return current ? { ...d, [id]: { ...current, ...patch, dirty: true } } : d;
+    });
   const updateInfo = (patch: Partial<SheetInfo>) => {
     if (!activeCourse) return;
     setInfos((i) => ({ ...i, [activeCourse]: { ...(i[activeCourse] ?? emptyInfo()), ...patch, dirty: true } }));
@@ -117,21 +120,20 @@ function ExamSheet() {
 
   /** Current types use today's deductions; errors of deleted types keep their saved snapshot. */
   function errorsOf(d: Draft): KiraatError[] {
-    const out: KiraatError[] = [];
-    for (const t of cols) { const c = d.counts[t.id] ?? 0; if (c > 0) out.push(errorSnapshot(t, c)); }
-    for (const e of d.oldErrors) if (!cols.some((t) => t.id === e.id) && e.count > 0) out.push(e);
-    return out;
+    return sheetErrors(cols, d.counts, d.oldErrors);
   }
 
   async function saveAll() {
-    const rows = Object.entries(drafts).filter(([, d]) => d.dirty).map(([sid, d]) => {
-      const st = students.find((s) => s.id === sid)!;
-      return {
+    if (!isAdmin) return;
+    const rows = Object.entries(drafts).filter(([, d]) => d.dirty).flatMap(([sid, d]) => {
+      const st = students.find((s) => s.id === sid);
+      if (!st) return [];
+      return [{
         exam_id: examId, student_id: sid, course_id: st.course_id,
         kiraat_errors: errorsOf(d) as unknown as never,
         ezber: toNum(d.ezber), ilmihal: toNum(d.ilmihal), siyer: toNum(d.siyer),
         sheet_marks: d.marks as unknown as never,
-      };
+      }];
     });
     const sheetRows = Object.entries(infos).filter(([, i]) => i.dirty).map(([cid, i]) => {
       const { dirty: _d, ...rest } = i;
@@ -151,7 +153,8 @@ function ExamSheet() {
   }
 
   async function downloadPdf(blank = false) {
-    if (!exam) return;
+    if (!exam || !sheetSettings) return;
+    if (dirtyCount) { toast.error("PDF indirmeden önce değişiklikleri kaydedin."); return; }
     const { examSheetPdf, savePdf } = await import("@/lib/pdf");
     const inputs = sheetPdfInputs({ exam, courses, students, results: results ?? [], errorTypes, sheets, settings: sheetSettings, blank });
     if (!inputs.length) { toast.error("Önce öğrenci ekleyin."); return; }
@@ -196,11 +199,11 @@ function ExamSheet() {
         <>
           <div className="mb-4 flex flex-wrap gap-2">
             {courses.map((c) => (
-              <button key={c.id} onClick={() => setCourseId(c.id)} style={courseColorVar(ids, c.id)}
+              <Button variant="outline" key={c.id} onClick={() => setCourseId(c.id)} style={courseColorVar(ids, c.id)}
                 className={cn("inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-semibold transition",
                   activeCourse === c.id ? "course-tint border-transparent course-text" : "bg-card hover:bg-secondary")}>
                 <span className="course-dot size-2 rounded-full" />{c.name}
-              </button>
+              </Button>
             ))}
           </div>
 
@@ -230,8 +233,8 @@ function ExamSheet() {
                   <tr>
                     <th rowSpan={3}>{labels.sira}</th>
                     <th rowSpan={3} className="min-w-40 text-left">{labels.adiSoyadi}</th>
-                    <th colSpan={cols.length + 1}>{labels.kiraatTitle}</th>
-                    <th colSpan={3}>{labels.ezberTitle}</th>
+                    <th colSpan={cols.length + 1}>{labels.kiraatTitle}<span className="mt-1 block text-[10px] font-normal">{labels.kiraatLine}</span></th>
+                    <th colSpan={3}>{labels.ezberTitle}<span className="mt-1 block text-[10px] font-normal">{labels.ezberLine1}<br />{labels.ezberLine2}</span></th>
                     <th colSpan={3}>{labels.ilmihalTitle}</th>
                     <th colSpan={3}>{labels.siyerTitle}</th>
                     <th rowSpan={3}>Ortalama</th>
@@ -269,10 +272,10 @@ function ExamSheet() {
                       <tr key={s.id} className={cn(d.dirty && "bg-gold-soft")}>
                         <td className="px-1">{i + 1}</td>
                         <td className="whitespace-nowrap px-2 text-left font-semibold">{fullName(s)}</td>
-                        {cols.map((t) => cell(String(d.counts[t.id] || ""), (v) => {
+                        {cols.map((t) => <td key={t.id}>{cell(String(d.counts[t.id] || ""), (v) => {
                           const n = Math.min(99, Math.max(0, parseInt(v.replace(/\D/g, "") || "0", 10)));
                           update(s.id, { counts: { ...d.counts, [t.id]: n } });
-                        }, `${t.name} hata sayısı`)).map((el, j) => <td key={cols[j]!.id}>{el}</td>)}
+                        }, `${t.name} hata sayısı`)}</td>)}
                         <td className="sheet-score">{filled ? fmt(sc.kiraat) : ""}</td>
                         <td>{mark("ezber1")}</td>
                         <td>{mark("ezber2")}</td>
@@ -322,5 +325,3 @@ function ExamSheet() {
   );
 }
 
-// Unused helper kept out: emptyMarks is used by sheet defaults.
-void emptyMarks;

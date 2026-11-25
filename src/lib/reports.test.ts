@@ -1,9 +1,35 @@
 import { describe, expect, it } from "vitest";
-import { sheetCourses } from "./reports";
+import { sheetCourses, sheetPdfInputs } from "./reports";
+import { emptyInfo } from "./sheet";
 import type { ResultRow } from "./scoring";
 
 const row = (student_id: string, course_id: string, total: number, extra: Partial<ResultRow> = {}): ResultRow => ({
   exam_id: "e1", student_id, course_id, kiraat: 100, ezber: total, ilmihal: total, siyer: total, total, tecvid_deduction: 0, ...extra,
+});
+
+describe("printable sheets", () => {
+  const sources = {
+    exam: { exam_month: 10 },
+    courses: [{ id: "c1", name: "Merkez", group_leader: "Mesul", group_level: "1" }],
+    students: [{ id: "s1", course_id: "c1", first_name: "Ali", last_name: "Şen" }],
+    results: [row("s1", "c1", 90)],
+    errorTypes: [],
+    sheets: [{ ...emptyInfo(), course_id: "c1", examiner: "İmtihan Mesulü", note_genel: "Not", exam_date: "2026-10-14" }],
+    settings: { regionName: "Mıntıka", bolgeName: "Bölge", labels: {} },
+  };
+  it("leaves scores and footer empty in blank sheets while keeping names and course identity", () => {
+    const sheet = sheetPdfInputs({ ...sources, blank: true })[0];
+    expect(sheet?.rows[0]?.name).toBe("Ali Şen");
+    expect(sheet?.rows[0]?.kiraat).toBeNaN();
+    expect(sheet?.info).toEqual(emptyInfo());
+    expect(sheet?.grupMesulu).toBe("Mesul");
+  });
+  it("includes saved scores and footer in filled sheets", () => {
+    const sheet = sheetPdfInputs(sources)[0];
+    expect(sheet?.rows[0]?.kiraat).toBe(100);
+    expect(sheet?.info.examiner).toBe("İmtihan Mesulü");
+    expect(sheet?.info.exam_date).toBe("2026-10-14");
+  });
 });
 
 describe("exam sheet rows", () => {

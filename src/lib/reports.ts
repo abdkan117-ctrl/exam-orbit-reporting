@@ -84,7 +84,7 @@ export function sheetPdfInputs(src: SheetSources) {
     .map((c) => {
       const list = src.students.filter((s) => s.course_id === c.id);
       const rows = sheetRows(list, src.blank ? [] : src.results.filter((r) => r.course_id === c.id));
-      const info = src.sheets.find((s) => s.course_id === c.id) ?? emptyInfo();
+      const info = src.blank ? emptyInfo() : src.sheets.find((s) => s.course_id === c.id) ?? emptyInfo();
       return {
         title: sheetTitle(src.exam.exam_month, labels),
         labels,
