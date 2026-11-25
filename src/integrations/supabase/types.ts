@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_feature_state: {
+        Row: {
+          blocked_status: number
+          feature: string
+          message: string
+          updated_at: string
+        }
+        Insert: {
+          blocked_status: number
+          feature: string
+          message: string
+          updated_at?: string
+        }
+        Update: {
+          blocked_status?: number
+          feature?: string
+          message?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           bolge_name: string
@@ -193,6 +214,51 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exam_sheet_photos: {
+        Row: {
+          course_id: string
+          created_at: string
+          exam_id: string
+          file_name: string
+          id: string
+          storage_path: string
+          uploaded_by: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          exam_id: string
+          file_name: string
+          id?: string
+          storage_path: string
+          uploaded_by: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          exam_id?: string
+          file_name?: string
+          id?: string
+          storage_path?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_sheet_photos_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exam_sheet_photos_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "exams"
             referencedColumns: ["id"]
           },
         ]

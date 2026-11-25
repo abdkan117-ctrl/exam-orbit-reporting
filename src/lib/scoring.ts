@@ -85,6 +85,14 @@ export function calcKiraat(errors: Deductible[]): number {
   return round2(clamp(100 - errors.reduce((sum, e) => sum + errorLoss(e), 0)));
 }
 
+/** Explicitly approved paper score when the photo has no reliable error breakdown. */
+export function photoKiraatErrors(score: number, recognized: KiraatError[]): KiraatError[] {
+  const target = round2(clamp(score));
+  if (calcKiraat(recognized) === target) return recognized;
+  const loss = round2(100 - target);
+  return loss === 0 ? [] : [{ id: "paper-kiraat", name: "Cetvelden aktarılan Kırâat kesintisi", category: "diger", deduction: loss, repeat_deduction: 0, max_deduction: loss, count: 1 }];
+}
+
 export function calcTecvidDeduction(errors: KiraatError[]): number {
   return round2(errors.filter((e) => e.category === "tecvid").reduce((s, e) => s + errorLoss(e), 0));
 }

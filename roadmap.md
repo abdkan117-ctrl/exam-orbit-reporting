@@ -18,3 +18,4 @@
 - [ ] Kesintiler kâğıttaki gibi (Zât-ı Harf 2 puan; tecvid tek hata 1, mükerrer 2) ve Ayarlar'dan düzenlenebilir
 - [ ] Bölge adı, Grup Mesulü, Grup Seviyesi düzenlenebilir
 - [ ] Cetvel yazıları (sual 15, 100, açıklamalar) Ayarlar'dan değiştirilebilir
+- [ ] Cetvel fotoğrafını çek/yükle, talebelerle eşleştir, puanları kontrol ederek cetvele aktar ve kaydet

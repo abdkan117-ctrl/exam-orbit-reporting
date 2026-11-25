@@ -8,6 +8,13 @@
       "when": 1795518523900,
       "tag": "0000_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1795634267318,
+      "tag": "0001_exam_sheet_photo_import",
+      "breakpoints": true
     }
   ]
 }
