@@ -13,9 +13,9 @@
 - [x] PDF: imtihan cetveli, kurs sıralaması, öğrenci sıralaması, kurs analiz raporu
 - [x] Eksik analizi: öğrenci, kurs, mıntıka geneli; sorumlu sadece kendi kursunu görür
 - [x] İmtihan cetveli fotoğrafı geldi (Ekim Ayı Şifahi İmtihan Cetveli)
-- [ ] Puan girme sayfası kâğıt cetvelin aynısı (tüm sütunlar, üst bilgiler, alt notlar), yazılabilir
-- [ ] Cetvel PDF'i kâğıdın aynısı (dolu + boş)
-- [ ] Kesintiler kâğıttaki gibi (Zât-ı Harf 2 puan; tecvid tek hata 1, mükerrer 2) ve Ayarlar'dan düzenlenebilir
-- [ ] Bölge adı, Grup Mesulü, Grup Seviyesi düzenlenebilir
-- [ ] Cetvel yazıları (sual 15, 100, açıklamalar) Ayarlar'dan değiştirilebilir
-- [ ] Cetvel fotoğrafını çek/yükle, talebelerle eşleştir, puanları kontrol ederek cetvele aktar ve kaydet
+- [x] Puan girme sayfası kâğıt cetvelin aynısı (tüm sütunlar, üst bilgiler, alt notlar), yazılabilir
+- [x] Cetvel PDF'i kâğıdın aynısı (dolu + boş)
+- [x] Kesintiler kâğıttaki gibi (Zât-ı Harf 2 puan; tecvid tek hata 1, mükerrer 2) ve Ayarlar'dan düzenlenebilir
+- [x] Bölge adı, Grup Mesulü, Grup Seviyesi düzenlenebilir
+- [x] Cetvel yazıları (sual 15, 100, açıklamalar) Ayarlar'dan değiştirilebilir
+- [x] Cetvel fotoğrafını çek/yükle, talebelerle eşleştir, puanları kontrol ederek cetvele aktar ve kaydet

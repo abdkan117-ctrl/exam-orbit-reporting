@@ -1,10 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { matchPhotoStudent, validPhotoScore, photoReviewProblem, photoRowErrors, type ReviewedPhotoRow } from "./sheet-photo";
+import { matchPhotoStudent, validPhotoScore, photoReviewProblem, photoRowErrors, reviewPhotoRows, type ReviewedPhotoRow } from "./sheet-photo";
 import { calcKiraat, calcTotal } from "./scoring";
 const student = { id: "s1", course_id: "c1", first_name: "İsmail", last_name: "Şen" };
 const row: ReviewedPhotoRow = {
   source: { row_number: 1, name: "İsmail Şen", kiraat: 92, ezber: 80, ilmihal: 60, siyer: 40, errors: [], ezber1: null, ezber2: null, ilmihal1: null, ilmihal2: null, siyer1: null, siyer2: null, uncertain: false, note: "" },
   studentId: "s1", selected: true, scores: { kiraat: "92", ezber: "80", ilmihal: "60", siyer: "40" }, counts: {}, kiraatSource: "paper",
+};
+const readWithCounts = {
+  course_name: null, month: null, year: null, warnings: [], examiner: null, exam_date: null,
+  kiraat_topic: null, ezber_topic_1: null, ezber_topic_2: null,
+  note_yuzune: null, note_ezber: null, note_ilmihal: null, note_siyer: null, note_genel: null,
+  rows: [{ ...row.source, errors: [{ error_id: "harf", count: 3 }] }],
 };
 describe("photo import accuracy", () => {
   it("matches an unambiguous full Turkish name only", () => {
@@ -34,6 +40,17 @@ describe("photo import accuracy", () => {
   });
   it("uses configured error deductions when count source is chosen", () => {
     const errors = photoRowErrors({ ...row, counts: { harf: 3 }, kiraatSource: "counts" }, [{ id: "harf", name: "Zât-ı Harf", category: "harf", deduction: 2, repeat_deduction: 2, max_deduction: null }]);
+    expect(calcKiraat(errors)).toBe(94);
+  });
+  it("keeps the visible paper score as the default when both scores and counts are read", () => {
+    const reviewed = reviewPhotoRows({ ...readWithCounts }, [student], [{ id: "harf", name: "Zât-ı Harf", category: "harf", deduction: 2, repeat_deduction: 2, max_deduction: null }]);
+    expect(reviewed[0]?.kiraatSource).toBe("paper");
+    expect(calcKiraat(photoRowErrors(reviewed[0]!, []))).toBe(92);
+  });
+  it("retains historical deduction snapshots when importing counts", () => {
+    const type = { id: "harf", name: "Zât-ı Harf", category: "harf" as const, deduction: 2, repeat_deduction: 2, max_deduction: null };
+    const saved = [{ ...type, deduction: 3, repeat_deduction: 3, count: 1 }];
+    const errors = photoRowErrors({ ...row, counts: { harf: 2 }, kiraatSource: "counts" }, [type], saved);
     expect(calcKiraat(errors)).toBe(94);
   });
 });

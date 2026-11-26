@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { fullName } from "./format";
-import { calcKiraat, photoKiraatErrors, type Student } from "./scoring";
-import { errorSnapshot, type SheetErrorType } from "./sheet";
+import { calcKiraat, photoKiraatErrors, type KiraatError, type Student } from "./scoring";
+import { errorSnapshot, sheetErrors, type SheetErrorType } from "./sheet";
 
 const scoreSchema = z.number().nullable();
 export const photoReadSchema = z.object({
@@ -71,8 +71,8 @@ export function recognizedErrors(counts: Record<string, number>, types: SheetErr
   });
 }
 
-export function photoRowErrors(row: ReviewedPhotoRow, types: SheetErrorType[]) {
-  const errors = recognizedErrors(row.counts, types);
+export function photoRowErrors(row: ReviewedPhotoRow, types: SheetErrorType[], saved: KiraatError[] = []) {
+  const errors = sheetErrors(types, row.counts, saved);
   return row.kiraatSource === "counts" ? errors : photoKiraatErrors(validPhotoScore(row.scores.kiraat) ?? 100, errors);
 }
 
@@ -83,7 +83,7 @@ export function reviewPhotoRows(read: PhotoRead, students: Student[], types: She
     const hasCounts = source.errors.some((e) => e.count != null && types.some((t) => t.id === e.error_id));
     const scores = Object.fromEntries(PHOTO_SCORE_KEYS.map((key) => [key, source[key] == null ? "" : String(source[key])])) as Record<PhotoScoreKey, string>;
     if (hasCounts && source.kiraat == null) scores.kiraat = String(calcKiraat(recognizedErrors(counts, types)));
-    return { source, studentId: matchPhotoStudent(source.name, students), selected: false, scores, counts, kiraatSource: hasCounts ? "counts" : "paper" };
+    return { source, studentId: matchPhotoStudent(source.name, students), selected: false, scores, counts, kiraatSource: hasCounts && source.kiraat == null ? "counts" : "paper" };
   });
 }
 

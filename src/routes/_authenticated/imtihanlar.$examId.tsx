@@ -5,6 +5,7 @@ import { FileDown, Save } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell, Card, EmptyState } from "@/components/AppShell";
+import { SheetPhotoImport } from "@/components/SheetPhotoImport";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -188,6 +189,17 @@ function ExamSheet() {
         <>
           <Button variant="outline" onClick={() => downloadPdf()}><FileDown /> Cetvel PDF</Button>
           <Button variant="outline" onClick={() => downloadPdf(true)}><FileDown /> Boş cetvel</Button>
+          {isAdmin && course && <SheetPhotoImport
+            examId={examId}
+            examName={examLabel(exam)}
+            courseId={course.id}
+            courseName={course.name}
+            students={list}
+            errorTypes={errorTypes}
+            results={(results ?? []).filter((r) => r.course_id === course.id)}
+            sheet={info}
+            disabled={dirtyCount > 0 || saving}
+          />}
           {isAdmin && <Button onClick={saveAll} disabled={!dirtyCount || saving}><Save /> {saving ? "Kaydediliyor…" : `Kaydet${dirtyCount ? ` (${dirtyCount})` : ""}`}</Button>}
         </>
       }
