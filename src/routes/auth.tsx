@@ -60,22 +60,22 @@ function AuthPage() {
 
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
-      <div className="bg-hero hidden flex-col justify-between p-12 text-primary-foreground lg:flex">
+      <div className="bg-hero order-2 hidden flex-col justify-between p-16 text-primary-foreground lg:flex">
         <p className="text-sm font-semibold uppercase tracking-[0.2em] text-gold">{region.data ?? ""}</p>
         <div>
-          <h1 className="font-display text-5xl font-semibold leading-tight">İmtihan ve<br />Sıralama Sistemi</h1>
-          <p className="mt-4 max-w-md text-primary-foreground/80">Kıraat, Ezber, İlmihal ve Siyer-i Nebi imtihanları; aylık ve yıllık sıralamalar.</p>
+          <h1 className="font-display text-6xl font-bold leading-tight">İmtihan ve<br />Sıralama Sistemi</h1>
+          <p className="mt-6 max-w-lg text-lg text-primary-foreground/80">Kıraat, Ezber, İlmihal ve Siyer-i Nebi imtihanları; aylık ve yıllık sıralamalar.</p>
         </div>
         <p className="text-sm text-primary-foreground/60">Kurslar • Öğrenciler • İmtihanlar • Sıralamalar</p>
       </div>
       <div className="flex items-center justify-center px-5 py-12">
-        <form onSubmit={submit} className="w-full max-w-sm space-y-5">
+        <form onSubmit={submit} className="w-full max-w-md space-y-5 rounded-3xl border bg-card p-8 shadow-card sm:p-10">
           <div className="lg:hidden">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">{region.data ?? ""}</p>
             <p className="font-display text-3xl font-semibold">İmtihan ve Sıralama</p>
           </div>
           <div>
-            <h2 className="text-2xl font-semibold">{needsSetup ? "Yönetici hesabı oluştur" : "Giriş yap"}</h2>
+            <h2 className="text-3xl font-bold">{needsSetup ? "Yönetici hesabı oluştur" : "Giriş yap"}</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               {needsSetup
                 ? "İlk kurulum: bu hesap bütün kursları ve puanları yönetir."

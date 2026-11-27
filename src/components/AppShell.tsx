@@ -39,29 +39,29 @@ export function AppShell({ children, title, actions }: { children: ReactNode; ti
   return (
     <div className="min-h-screen">
       <header className="bg-hero text-primary-foreground">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 pb-3 pt-5 sm:px-6">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 pb-4 pt-6 sm:px-6">
           <Link to="/panel" className="min-w-0">
             <p className="truncate text-xs font-semibold uppercase tracking-[0.18em] text-gold">{region ?? "Mıntıka"}</p>
-            <p className="font-display text-xl font-semibold leading-tight sm:text-2xl">İmtihan ve Sıralama</p>
+            <p className="font-display text-xl font-bold leading-tight sm:text-3xl">İmtihan ve Sıralama</p>
           </Link>
           <button
             onClick={async () => {
               await supabase.auth.signOut();
               navigate({ to: "/auth" });
             }}
-            className="inline-flex shrink-0 items-center gap-2 rounded-full border border-primary-foreground/25 px-3 py-1.5 text-sm font-medium transition hover:bg-primary-foreground/10"
+            className="inline-flex shrink-0 items-center gap-2 rounded-full border border-primary-foreground/30 px-4 py-2 text-sm font-medium transition hover:bg-primary-foreground/10"
           >
             <LogOut className="size-4" /> <span className="hidden sm:inline">Çıkış</span>
           </button>
         </div>
-        <nav className="mx-auto max-w-6xl overflow-x-auto px-2 sm:px-4">
-          <ul className="flex gap-1 pb-2">
+        <nav className="mx-auto max-w-7xl overflow-x-auto px-2 sm:px-4">
+          <ul className="flex gap-2 pb-4">
             {items.map(({ to, label, icon: Icon }) => (
               <li key={to}>
                 <Link
                   to={to}
-                  className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium text-primary-foreground/80 transition hover:bg-primary-foreground/10 hover:text-primary-foreground"
-                  activeProps={{ className: "bg-primary-foreground/15 !text-primary-foreground" }}
+                  className="inline-flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium text-primary-foreground/85 sm:text-base transition hover:bg-primary-foreground/10 hover:text-primary-foreground"
+                  activeProps={{ className: "bg-card !text-primary font-semibold hover:!bg-card" }}
                 >
                   <Icon className="size-4" />
                   {label}
@@ -71,10 +71,10 @@ export function AppShell({ children, title, actions }: { children: ReactNode; ti
           </ul>
         </nav>
       </header>
-      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
         {(title || actions) && (
           <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-            {title && <h1 className="text-2xl font-semibold sm:text-3xl">{title}</h1>}
+            {title && <h1 className="text-2xl font-bold sm:text-4xl">{title}</h1>}
             {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
           </div>
         )}
