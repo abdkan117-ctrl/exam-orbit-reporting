@@ -236,9 +236,7 @@ function ExamSheet() {
             {isAdmin && <p className="mt-2 text-xs text-muted-foreground">Bölge, Mıntıka, Grup Mesulü ve Grup Seviyesi Ayarlar'dan değiştirilir.</p>}
           </Card>
 
-          {list.length === 0 ? (
-            <EmptyState>Bu kursta öğrenci yok.</EmptyState>
-          ) : (
+          {(
             <Card className="mb-4 overflow-x-auto p-0">
               <table className="sheet-table w-full">
                 <thead>
@@ -302,6 +300,12 @@ function ExamSheet() {
                       </tr>
                     );
                   })}
+                  {Array.from({ length: Math.max(0, 20 - list.length) }, (_, j) => (
+                    <tr key={`empty-${j}`} className="h-9">
+                      <td className="px-1 text-muted-foreground">{list.length + j + 1}</td>
+                      {Array.from({ length: cols.length + 12 }, (_, k) => <td key={k} />)}
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </Card>
