@@ -191,6 +191,109 @@ function ExamSheet() {
       <input aria-label={label} inputMode="decimal" value={value} onChange={(e) => onChange(e.target.value)} className="sheet-input" />
     );
 
+  const B = "border border-[#4f6b73]";
+  const gap = <td className="w-3 border-0 bg-transparent" />;
+  const gapH = (k: string) => <th key={k} className="w-3 border-0 bg-transparent" />;
+  const pc = "bg-[#d9e5e7]";
+  const paper = () => {
+    const rows = Array.from({ length: Math.max(20, list.length) }, (_, i) => list[i]);
+    const ta = (k: "note_yuzune" | "note_ezber" | "note_ilmihal" | "note_siyer" | "note_genel", l: string, span: number) => (
+      <td colSpan={span} className={cn(B, "h-16 p-1 align-top text-left")}>
+        <div className="text-[11px]">{l}</div>
+        {ro ? <div className="text-xs">{info[k]}</div> : <textarea value={info[k]} onChange={(e) => updateInfo({ [k]: e.target.value.slice(0, 1000) })} className="h-10 w-full resize-none bg-transparent text-xs outline-hidden" />}
+      </td>
+    );
+    return (
+      <div className="min-w-[1100px] bg-white p-3 text-[#2f4a52]">
+        <h2 className="mb-2 bg-[#e8e1cf] py-1 text-center text-lg font-bold">{sheetTitle(exam.exam_month, labels)}</h2>
+        <div className="mb-2 grid w-80 grid-cols-[8rem_1fr] text-sm">
+          {([[labels.bolge, sheetSettings?.bolgeName], [labels.mintika, sheetSettings?.regionName], [labels.kurum, course?.name], [labels.grupMesulu, course?.group_leader], [labels.grupSeviyesi, course?.group_level]] as const).map(([l, v]) => (
+            <><span key={l}>{l}</span><span className="font-bold">: {v ?? ""}</span></>
+          ))}
+        </div>
+        <table className="w-full border-collapse text-center text-xs [&_input]:w-full [&_input]:bg-transparent [&_input]:text-center [&_input]:outline-hidden">
+          <thead>
+            <tr>
+              <th colSpan={2} className="border-0" />{gapH("g1")}
+              <th colSpan={cols.length + 1} className={cn(B, "bg-[#e8e1cf] py-1")}>{labels.kiraatTitle}<div className="text-[9px] font-normal">{labels.kiraatLine}</div></th>{gapH("g2")}
+              <th colSpan={3} className={cn(B, "bg-[#dcd8ee] py-1")}>{labels.ezberTitle}<div className="text-[9px] font-normal">{labels.ezberLine1} {labels.ezberLine2}</div></th>{gapH("g3")}
+              <th colSpan={3} className={cn(B, "bg-[#dce8ea]")}>{labels.ilmihalTitle}</th>{gapH("g4")}
+              <th colSpan={3} className={cn(B, "bg-[#dce8ea]")}>{labels.siyerTitle}</th>
+            </tr>
+            <tr className="h-24">
+              <th colSpan={2} className="border-0" />{gapH("h1")}
+              {cols.map((t) => <th key={t.id} className={cn(B, "align-bottom font-normal")}><span className="inline-block [writing-mode:vertical-rl] rotate-180 text-[10px] leading-tight">{t.name}</span></th>)}
+              <th className={cn(B, "w-12 align-bottom", pc)}><span className="inline-block [writing-mode:vertical-rl] rotate-180">{labels.kiraatPuan}</span></th>{gapH("h2")}
+              <th className={cn(B, "w-24")} /><th className={cn(B, "w-24")} />
+              <th className={cn(B, "w-12 align-bottom", pc)}><span className="inline-block [writing-mode:vertical-rl] rotate-180">{labels.ezberPuan}</span></th>{gapH("h3")}
+              <th className={cn(B, "w-8 align-bottom font-normal")}><span className="inline-block [writing-mode:vertical-rl] rotate-180">{labels.ilmihalSual1}</span></th>
+              <th className={cn(B, "w-8 align-bottom font-normal")}><span className="inline-block [writing-mode:vertical-rl] rotate-180">{labels.ilmihalSual2}</span></th>
+              <th className={cn(B, "w-12 align-bottom", pc)}><span className="inline-block [writing-mode:vertical-rl] rotate-180">{labels.ilmihalPuan}</span></th>{gapH("h4")}
+              <th className={cn(B, "w-8 align-bottom font-normal")}><span className="inline-block [writing-mode:vertical-rl] rotate-180">{labels.siyerSual1}</span></th>
+              <th className={cn(B, "w-8 align-bottom font-normal")}><span className="inline-block [writing-mode:vertical-rl] rotate-180">{labels.siyerSual2}</span></th>
+              <th className={cn(B, "w-12 align-bottom", pc)}><span className="inline-block [writing-mode:vertical-rl] rotate-180">{labels.siyerPuan}</span></th>
+            </tr>
+            <tr className="text-[10px] font-normal">
+              <th className="w-8 border-b border-[#4f6b73] text-left font-normal">{labels.sira}</th>
+              <th className="min-w-52 border-b border-[#4f6b73] text-left font-normal">{labels.adiSoyadi}</th>{gapH("s1")}
+              {harf.length > 0 && <th colSpan={harf.length} className={cn(B, "font-normal")}>{labels.harfNote}</th>}
+              {tecvid.length > 0 && <th colSpan={tecvid.length} className={cn(B, "font-normal")}>{labels.tecvidNote}</th>}
+              <th className={cn(B, pc)}>{labels.kiraatMax}</th>{gapH("s2")}
+              <th className={cn(B, "font-normal")}>{labels.ezberPart1}</th><th className={cn(B, "font-normal")}>{labels.ezberPart2}</th><th className={cn(B, pc)}>{labels.ezberMax}</th>{gapH("s3")}
+              <th className={B}>{labels.ilmihalSualMax1}</th><th className={B}>{labels.ilmihalSualMax2}</th><th className={cn(B, pc)}>{labels.ilmihalMax}</th>{gapH("s4")}
+              <th className={B}>{labels.siyerSualMax1}</th><th className={B}>{labels.siyerSualMax2}</th><th className={cn(B, pc)}>{labels.siyerMax}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((s, i) => {
+              const d = s ? drafts[s.id] : undefined;
+              const td = (c: React.ReactNode, extra = "") => <td className={cn(B, "h-7 p-0", extra)}>{c}</td>;
+              if (!s || !d) return (
+                <tr key={`e${i}`}><td className="border-b border-[#4f6b73]">{i + 1}</td><td className="border-b border-[#4f6b73]" />{gap}
+                  {cols.map((t) => <td key={t.id} className={B} />)}{td(null, pc)}{gap}{td(null)}{td(null)}{td(null, pc)}{gap}{td(null)}{td(null)}{td(null, pc)}{gap}{td(null)}{td(null)}{td(null, pc)}</tr>
+              );
+              const sc = liveScores(errorsOf(d), toNum(d.ezber), toNum(d.ilmihal), toNum(d.siyer));
+              const mark = (k: keyof SheetMarks) => cell(d.marks[k], (v) => update(s.id, { marks: { ...d.marks, [k]: numIn(v) } }), k);
+              return (
+                <tr key={s.id} className={cn(d.dirty && "bg-gold-soft")}>
+                  <td className="border-b border-[#4f6b73]">{i + 1}</td>
+                  <td className="whitespace-nowrap border-b border-[#4f6b73] px-1 text-left font-bold">{fullName(s)}</td>{gap}
+                  {cols.map((t) => <td key={t.id} className={cn(B, "w-8 p-0")}>{cell(String(d.counts[t.id] || ""), (v) => {
+                    const n = Math.min(99, Math.max(0, parseInt(v.replace(/\D/g, "") || "0", 10)));
+                    update(s.id, { counts: { ...d.counts, [t.id]: n } });
+                  }, `${t.name} hata sayısı`)}</td>)}
+                  {td(d.exists || d.dirty ? fmt(sc.kiraat) : "", cn(pc, "font-bold"))}{gap}
+                  {td(mark("ezber1"))}{td(mark("ezber2"))}{td(cell(d.ezber, (v) => update(s.id, { ezber: numIn(v) }), "Ezber puanı"), cn(pc, "font-bold"))}{gap}
+                  {td(mark("ilmihal1"))}{td(mark("ilmihal2"))}{td(cell(d.ilmihal, (v) => update(s.id, { ilmihal: numIn(v) }), "İlmihal puanı"), cn(pc, "font-bold"))}{gap}
+                  {td(mark("siyer1"))}{td(mark("siyer2"))}{td(cell(d.siyer, (v) => update(s.id, { siyer: numIn(v) }), "Siyer puanı"), cn(pc, "font-bold"))}
+                </tr>
+              );
+            })}
+            <tr className="h-2" />
+            <tr>
+              <td colSpan={2} className="p-0 align-top">
+                <div className="text-[11px]">{labels.examiner}</div>
+                {ro ? <div className={cn(B, "h-10 p-1")}>{info.examiner}</div> : <input value={info.examiner} maxLength={200} onChange={(e) => updateInfo({ examiner: e.target.value })} className={cn(B, "h-10")} />}
+              </td>{gap}
+              {ta("note_yuzune", labels.noteYuzune, cols.length + 1)}{gap}
+              {ta("note_ezber", labels.noteEzber, 3)}{gap}
+              {ta("note_ilmihal", labels.noteIlmihal, 3)}{gap}
+              {ta("note_siyer", labels.noteSiyer, 3)}
+            </tr>
+            <tr className="h-2" />
+            <tr>
+              <td colSpan={2} className="p-0 align-top">
+                <div className="text-[11px]">{labels.examDate}</div>
+                {ro ? <div className={cn(B, "h-10 p-1")}>{info.exam_date}</div> : <input type="date" value={info.exam_date ?? ""} onChange={(e) => updateInfo({ exam_date: e.target.value || null })} className={cn(B, "h-10")} />}
+              </td>{gap}
+              {ta("note_genel", labels.noteGenel, cols.length + 1 + 1 + 3 + 1 + 3 + 1 + 3)}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
   return (
     <AppShell
       title={`${examLabel(exam)} İmtihan Cetveli`}
@@ -229,7 +332,7 @@ function ExamSheet() {
             ))}
           </div>
 
-          <div className={cn(focus && "fixed inset-0 z-50 overflow-auto bg-background p-3")}>
+          <div className={cn(focus && "fixed inset-0 z-50 overflow-auto bg-white p-3")}>
           {focus && (
             <div className="sticky top-0 z-10 -mx-3 -mt-3 mb-3 flex items-center justify-between gap-2 border-b bg-background px-3 py-2">
               <span className="min-w-0 truncate font-semibold">{course?.name}</span>
@@ -239,6 +342,7 @@ function ExamSheet() {
               </div>
             </div>
           )}
+          {focus ? paper() : <>
           <Card className="mb-4 p-4">
             <h2 className="mb-3 text-center font-display text-lg font-bold tracking-wide">{sheetTitle(exam.exam_month, labels)}</h2>
             <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
@@ -349,6 +453,7 @@ function ExamSheet() {
               ))}
             </div>
           </Card>
+          </>}
           </div>
 
           {isAdmin && dirtyCount > 0 && (
