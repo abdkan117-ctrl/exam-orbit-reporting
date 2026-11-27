@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { FileDown, Save } from "lucide-react";
+import { FileDown, Maximize2, Minimize2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell, Card, EmptyState } from "@/components/AppShell";
@@ -71,6 +71,15 @@ function ExamSheet() {
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
   const [infos, setInfos] = useState<Record<string, SheetInfo & { dirty?: boolean }>>({});
   const [saving, setSaving] = useState(false);
+  const [focus, setFocus] = useState(false);
+  useEffect(() => {
+    if (!focus) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setFocus(false); };
+    window.addEventListener("keydown", onKey);
+    return () => { document.body.style.overflow = prev; window.removeEventListener("keydown", onKey); };
+  }, [focus]);
   const activeCourse = courseId ?? courses[0]?.id ?? null;
   const course = courses.find((c) => c.id === activeCourse);
   const ids = courses.map((c) => c.id);
@@ -187,6 +196,7 @@ function ExamSheet() {
       title={`${examLabel(exam)} İmtihan Cetveli`}
       actions={
         <>
+          <Button onClick={() => setFocus(true)}><Maximize2 /> İmtihan modu</Button>
           <Button variant="outline" onClick={() => downloadPdf()}><FileDown /> Cetvel PDF</Button>
           <Button variant="outline" onClick={() => downloadPdf(true)}><FileDown /> Boş cetvel</Button>
           {isAdmin && course && <SheetPhotoImport
@@ -219,6 +229,16 @@ function ExamSheet() {
             ))}
           </div>
 
+          <div className={cn(focus && "fixed inset-0 z-50 overflow-auto bg-background p-3")}>
+          {focus && (
+            <div className="sticky top-0 z-10 -mx-3 -mt-3 mb-3 flex items-center justify-between gap-2 border-b bg-background px-3 py-2">
+              <span className="min-w-0 truncate font-semibold">{course?.name}</span>
+              <div className="flex shrink-0 gap-2">
+                {isAdmin && <Button size="sm" onClick={saveAll} disabled={!dirtyCount || saving}><Save /> {saving ? "Kaydediliyor…" : `Kaydet${dirtyCount ? ` (${dirtyCount})` : ""}`}</Button>}
+                <Button size="sm" variant="outline" onClick={() => setFocus(false)}><Minimize2 /> Çık</Button>
+              </div>
+            </div>
+          )}
           <Card className="mb-4 p-4">
             <h2 className="mb-3 text-center font-display text-lg font-bold tracking-wide">{sheetTitle(exam.exam_month, labels)}</h2>
             <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
@@ -329,6 +349,7 @@ function ExamSheet() {
               ))}
             </div>
           </Card>
+          </div>
 
           {isAdmin && dirtyCount > 0 && (
             <div className="sticky bottom-4 mt-4 flex justify-end">
