@@ -35,3 +35,4 @@ use the editor.
 - PDFs are built in the browser (`src/lib/pdf.ts`, jsPDF with bundled Noto Sans for Turkish letters) and imported dynamically from click handlers, because jsPDF is browser-only.
 - Course managers see only their course through database row rules; pages read with the browser client and rely on those rules rather than client-side filtering.
 - Sheet texts and error snapshots are shared through `src/lib/sheet.ts`; retain saved deductions when editing old results so settings cannot silently rewrite historical scores.
+- The exam detail route delegates result writes to SheetPhotoImport and keeps PDF exports separate, so photo review is the single entry path without duplicate draft state.

@@ -18,9 +18,9 @@ export const Route = createFileRoute("/_authenticated/imtihanlar/")({
   head: () => ({
     meta: [
       { title: "İmtihanlar — Mıntıka İmtihan Sistemi" },
-      { name: "description", content: "Aylık imtihanlar ve puan girişi." },
+      { name: "description", content: "Aylık imtihanlar ve cetvel fotoğrafından puan aktarımı." },
       { property: "og:title", content: "İmtihanlar — Mıntıka İmtihan Sistemi" },
-      { property: "og:description", content: "Aylık imtihanlar ve puan girişi." },
+      { property: "og:description", content: "Aylık imtihanlar ve cetvel fotoğrafından puan aktarımı." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
