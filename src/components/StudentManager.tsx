@@ -45,7 +45,7 @@ export function AddStudentForm({ courses, fixedCourseId }: { courses: Course[]; 
   }
 
   return (
-    <form onSubmit={add} className="flex flex-wrap gap-2 rounded-2xl border bg-card p-3 shadow-card">
+    <form onSubmit={add} className="flex flex-wrap gap-3">
       <Input placeholder="Adı" value={first} onChange={(e) => setFirst(e.target.value)} className="h-11 min-w-36 flex-1 text-base" required maxLength={60} />
       <Input placeholder="Soyadı" value={last} onChange={(e) => setLast(e.target.value)} className="h-11 min-w-36 flex-1 text-base" maxLength={60} />
       {!fixedCourseId && (
@@ -83,15 +83,15 @@ export function StudentRow({ student, editable, right }: { student: Student; edi
   }
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3">
-      <p className="student-name min-w-0 flex-1 truncate">{fullName(student)}</p>
+    <div className="flex min-h-16 items-center gap-3 py-3 transition-colors hover:bg-muted/40">
+      <p className="min-w-0 flex-1 break-words text-base font-medium leading-relaxed">{fullName(student)}</p>
       {right}
       {editable && (
         <div className="flex shrink-0 gap-1">
-          <Button variant="ghost" size="icon" aria-label="İsmi değiştir" onClick={() => setOpen(true)}><Pencil /></Button>
+          <Button variant="ghost" size="icon" aria-label="İsmi değiştir" title="İsmi değiştir" className="text-muted-foreground" onClick={() => setOpen(true)}><Pencil className="size-4" /></Button>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="Öğrenciyi sil" className="text-destructive hover:bg-destructive-soft hover:text-destructive"><Trash2 /></Button>
+              <Button variant="ghost" size="icon" aria-label="Öğrenciyi sil" title="Öğrenciyi sil" className="text-muted-foreground hover:bg-destructive-soft hover:text-destructive"><Trash2 className="size-4" /></Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>

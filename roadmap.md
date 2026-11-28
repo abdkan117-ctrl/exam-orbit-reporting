@@ -1,5 +1,7 @@
 # Mıntıka İmtihan ve Sıralama Sistemi — Yol Haritası
 
+- [ ] Kurslar, kurs ayrıntısı ve öğrenciler: renkli kenarları kaldır, sade liste görünümünü bilgisayarda ve telefonda kontrol et
+
 - [x] Veritabanı: kurslar, öğrenciler, aylık imtihanlar, hata türleri, sonuçlar, roller, paylaşım linki
 - [x] Giriş: yönetici + kurs sorumlusu hesapları
 - [x] Kurslar: ekle/sil, öğrenci listesi, ortalama, sıra

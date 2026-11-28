@@ -1,12 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Search } from "lucide-react";
-import { AppShell, Card, EmptyState } from "@/components/AppShell";
+import { Plus, Search } from "lucide-react";
+import { AppShell, EmptyState } from "@/components/AppShell";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { AddStudentForm, StudentRow, sortStudents } from "@/components/StudentManager";
 import { coursesQuery, studentsQuery } from "@/lib/data";
-import { courseColorVar, fullName, trUpper } from "@/lib/format";
+import { fullName } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/ogrenciler")({
   head: () => ({
@@ -26,36 +28,41 @@ function StudentsPage() {
   const { data: courses = [] } = useQuery(coursesQuery);
   const { data: students = [] } = useQuery(studentsQuery);
   const [q, setQ] = useState("");
-  const ids = courses.map((c) => c.id);
   const needle = q.trim().toLocaleLowerCase("tr");
   const filtered = needle ? students.filter((s) => fullName(s).toLocaleLowerCase("tr").includes(needle)) : students;
 
   return (
-    <AppShell title="Öğrenciler" actions={<span className="text-sm text-muted-foreground">{students.length} öğrenci</span>}>
+    <AppShell title="Öğrenciler" actions={courses.length > 0 && <Dialog>
+      <DialogTrigger asChild><Button><Plus /> Öğrenci ekle</Button></DialogTrigger>
+      <DialogContent className="rounded-lg"><DialogHeader><DialogTitle>Yeni öğrenci</DialogTitle></DialogHeader><AddStudentForm courses={courses} /></DialogContent>
+    </Dialog>}>
       {courses.length === 0 ? (
         <EmptyState>Önce Kurslar sayfasından kurs ekleyin.</EmptyState>
       ) : (
         <>
-          <AddStudentForm courses={courses} />
-          <div className="relative my-6 max-w-sm">
+          <div className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b pb-5">
+          <p className="text-sm text-muted-foreground">{students.length} öğrenci · {courses.length} kurs</p>
+          <div className="relative w-full sm:w-72">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Öğrenci ara" className="h-10 bg-card pl-9" />
+            <Input aria-label="Öğrenci ara" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Öğrenci ara" className="h-11 rounded-md bg-card pl-9 shadow-none" />
           </div>
-          <div className="grid gap-5 md:grid-cols-2">
+          </div>
+          {needle && filtered.length === 0 && <EmptyState>Aramanızla eşleşen öğrenci bulunamadı.</EmptyState>}
+          <div className="grid items-start gap-x-14 gap-y-10 lg:grid-cols-2">
             {courses.map((c) => {
               const list = sortStudents(filtered.filter((s) => s.course_id === c.id));
               if (needle && !list.length) return null;
               return (
-                <Card key={c.id} className="course-stripe overflow-hidden" style={courseColorVar(ids, c.id)}>
-                  <div className="course-tint flex items-center justify-between px-4 py-3">
-                    <p className="font-display text-lg font-semibold course-text">{trUpper(c.name)}</p>
-                    <span className="text-sm text-muted-foreground">{list.length}</span>
+                <section key={c.id}>
+                  <div className="flex items-baseline justify-between gap-3 border-b pb-4">
+                    <h2 className="break-words text-xl font-semibold">{c.name}</h2>
+                    <span className="shrink-0 text-xs text-muted-foreground">{list.length} öğrenci</span>
                   </div>
                   <div className="divide-y">
-                    {list.length === 0 && <p className="px-4 py-4 text-sm text-muted-foreground">Öğrenci yok.</p>}
+                    {list.length === 0 && <p className="py-5 text-sm text-muted-foreground">Öğrenci yok.</p>}
                     {list.map((s) => <StudentRow key={s.id} student={s} editable />)}
                   </div>
-                </Card>
+                </section>
               );
             })}
           </div>
